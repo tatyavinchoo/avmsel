@@ -1,0 +1,182 @@
+------Requirement 1-------
+CREATE PROC CASQLENB_206604_101
+AS
+BEGIN
+
+	SELECT pm.PatientID , pm.Patient_Name , CONVERT(varchar(10),DateOfRegistration,120) as P_RegistDate,
+	DATENAME(MM,DateOfRegistration) as Month,
+	fd.DoctorId, fd.TotalAmount
+	FROM PATIENTMASTER pm JOIN Fees_Details_for_Out_Patients fd ON pm.PatientId  = fd.PatientId
+	WHERE fd.TotalAmount = (SELECT MAX(fd.TotalAmount) FROM Fees_Details_for_Out_Patients fd JOIN PATIENTMASTER pm ON DATEPART(Month,pm.DateOfRegistration) = '11' )
+	    
+    
+END
+------Requirement 2-------
+
+CREATE PROC CASQLENB_206604_102
+AS
+BEGIN
+  
+  select FeesID as "Fees ID", DoctorAddress1 as "First Address" 
+  FROM    Doctor_Fees_Master join 
+  DoctorMaster on Doctor_Fees_Master.DoctorId = DoctorMaster.DoctorId 
+  where DoctorAddress1 like '%pune%' order by FeesID desc
+  FOR XML AUTO
+   
+   
+END
+   
+------Requirement 3-------
+
+CREATE PROC CASQLENB_206604_103
+AS
+BEGIN
+   
+	SELECT dm.DoctorID , dm.DoctorName , dm.Gender , SUM(fdin.TotalAmount) AS SUM_IN_PATIENT,
+	SUM(fdout.TotalAmount) AS SUM_OUT_PATIENT, 
+	(fdin.TotalAmount + fdout.TotalAmount ) AS TOTAL_AMOUNT
+	FROM dbo.DOCTORMASTER dm JOIN 
+	Fees_Details_for_In_Patients fdin
+	ON dm.DoctorId = fdin.DoctorID JOIN
+	Fees_Details_for_Out_Patients fdout ON fdout.DoctorID = dm.DoctorID 
+	WHERE (fdin.TotalAmount + fdout.TotalAmount ) = (SELECT (Min(fdin.TotalAmount + fdout.TotalAmount )) 
+	FROM Fees_Details_for_In_Patients fdin JOIN 
+	Fees_Details_for_Out_Patients fdout ON fdin.DoctorId = fdout.DoctorId )
+	GROUP BY dm.DoctorID,dm.DoctorName,dm.Gender,fdin.TotalAmount,fdout.TotalAmount
+        
+        
+END
+        
+------Requirement 4-------
+        CREATE PROC CASQLENB_206604_104
+AS
+BEGIN
+        
+ SELECT rm.RoomId,rm.RoomDescription, rm.RoomType,rm.Number_Of_Beds,rrtm.Rent_Per_Day 
+ FROM ROOMMASTER rm JOIN Room_Rate_Master rrtm ON rrtm.RoomId = rm.RoomId 
+ WHERE rm.Number_Of_Beds = (SELECT MAX(rm.Number_Of_Beds) FROM RoomMaster rm) ORDER BY rm.RoomId desc
+ 
+ 
+END
+ 
+------Requirement 5-------
+
+CREATE PROC CASQLENB_206604_105
+AS
+BEGIN
+ 
+	SELECT dm.DoctorId , dm.DoctorName , fdin.DoctorsFees 
+	FROM DOCTORMASTER dm JOIN Fees_Details_for_In_Patients fdin ON
+	dm.DoctorId = fdin.DoctorId JOIN DOCTOR_FEES_MASTER dfm ON dfm.DoctorId = fdin.DoctorId WHERE
+	fdin.DoctorsFees > dfm.Fees_for_In_Patients GROUP BY dm.DoctorId,dm.DoctorName,fdin.DoctorsFees
+
+   
+END
+ ------Requirement 6-------
+ 
+CREATE PROC CASQLENB_206604_106
+AS
+BEGIN
+   
+	SELECT ROW_NUMBER() OVER (
+	Partition by gender ORDER BY DateOfBirth) AS RowNumber,  
+	DoctorId, DoctorName, DoctorAddress1,Gender
+	FROM dbo.DoctorMaster
+
+
+END
+
+------Requirement 7-------
+
+CREATE PROC CASQLENB_206604_107
+AS
+BEGIN
+
+	select RANK() OVER ( partition by roomtype order by rent_per_day) as rankcl , Roomdescription
+	from dbo.Room_Rate_Master a inner join dbo.RoomMaster b on a.RoomId=b.RoomId
+
+
+END
+
+------Requirement 8-------
+
+CREATE PROC CASQLENB_206604_108
+AS
+BEGIN
+
+	With T(Patient_Name, Patient_Address1, Phone,Sex, DateOfBirth)  
+	AS
+	(
+	SELECT a.Patient_Name,Patient_Address1, A.Phone,A.Sex,A.DateOfBirth From dbo.PatientMaster A
+	Inner join dbo.PatientDetails b on A.PatientId = b.PatientId
+	)
+
+	SELECT * FROM T  
+	WHERE T.DateOfBirth > 1966-05-6
+	ORDER BY T.Sex
+
+END
+------Requirement 9-------
+
+CREATE TRIGGER TGR_ON_DoctorMaster on DoctorMaster
+FOR INSERT
+AS DECLARE @DoctorId int, @DoctorName varchar(30),@Audit_Action varchar(100);
+SELECT @DoctorId = i.DoctorID FROm inserted i;
+SELECT @DoctorName = i.DoctorName FROm inserted i;
+SET @Audit_Action = 'Inserted Record -- After Insert Trigger';
+INSERT INTO dbo.AUDIT (DoctorID, DoctorName, Audit_Action, Audit_Timestamp)
+values (@DoctorId ,@DoctorName,  @Audit_Action,getdate());
+
+------Requirement 10-------
+CREATE PROC CASQLENB_206604_110
+AS
+BEGIN
+
+SELECT *
+FROM (
+    SELECT 
+        year(invoiceDate) as [year],left(datename(month,invoicedate),3)as [month], 
+        InvoiceAmount as Amount 
+    FROM InvoiceAmount
+) as s
+PIVOT
+(
+    SUM(Amount)
+    FOR [month] IN (jan, feb, mar, apr, 
+    may, jun, jul, aug, sep, oct, nov, dec)
+)AS piviot
+
+END
+
+------Requirement 11-------
+
+CREATE PROC CASQLENB_206604_111
+AS
+BEGIN
+
+SELECT [PatientId]
+      ,[Patient_Name]      
+	  ,[DateOfBirth]      
+      ,EOMONTH([DateOfBirth]) as [EOMDateOfBirth]
+	  ,IIF([Blood_Group] = 'O+', 'Required', 'Not Required') AS Result
+      ,[Phone]      
+      ,[DateOfRegistration]
+  FROM [CASQLENB].[dbo].[PatientMaster]
+
+END
+------Requirement 12-------
+
+CREATE PROC CASQLENB_206604_112
+AS
+BEGIN
+
+SELECT [RoomId]
+      ,[PatientId]
+      ,[DoctorId]      
+      ,[Room_Rent_Per_day]
+	  ,LAST_VALUE([Room_Rent_Per_day]) OVER(ORDER BY [PatientId] 
+      ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+      AS LstValue
+  FROM [CASQLENB].[dbo].[Fees_Details_for_In_Patients]
+
+END
