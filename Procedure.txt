@@ -1,0 +1,46 @@
+https://vdiassessment.cognizant.com 
+
+first take class library project
+
+write your own functionality in a class
+
+make sure class should be public
+
+buil
+
+
+library file will be created in bin/Debuge folder
+
+u dit up to this
+
+yes sir
+
+next create console project
+
+in the same solution
+
+in console project open soution explorer
+
+
+u see there is a reference folder
+
+right click and select add reference
+
+
+u will get one window
+
+in the left side option select solution 
+
+u will fild libraries in the solution
+
+select it and click ok
+
+it will be added in references folder of the project
+
+then to use this lib in the application
+
+using CalculateLib
+
+u can get all the classes in that lib
+:
+instatantiate and use them
