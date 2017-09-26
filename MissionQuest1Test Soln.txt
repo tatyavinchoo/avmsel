@@ -1,0 +1,87 @@
+using System;
+
+using System.Collections.Generic;
+
+using System.Linq;
+
+using System.Text;
+
+using NUnit.Framework;
+
+using NAVCalculation;
+
+using System.Data.SqlClient;
+
+namespace TestEmployeeValidator
+{
+
+    [TestFixture]
+
+    class TestEmployeeValid
+    {
+
+        List<Employee> li = new List<Employee>();
+
+        List<Employee> f = new List<Employee>() {
+
+            new Employee { EmployeeId = "101", EmployeeName = "John", EmailId = "John@hotmail.com", DateOfJoining = "8/2/2011" };
+            new Employee { EmployeeId = "102", EmployeeName = "Preethi", EmailId = "Preethi@gmail.com", DateOfJoining = "10/6/2008" };
+           new Employee { EmployeeId = "103", EmployeeName = "Jenifer", EmailId = "Jenifer@yahoo.com", DateOfJoining = "6/10/2004" };
+
+             
+
+            };
+
+        SqlConnection con = new SqlConnection(@"Data Source=PC123125\SQLEXPRESS;Initial Catalog=MyDB;User ID=sa;Password=Password123;");
+
+
+
+
+
+        [Test]
+
+        public void TestReadAllEmployeesFromXmlFile()
+        {
+
+            EmployeeValidator ev=new EmployeeValidator();
+
+            li = ev.ReadAllEmployeesFromXmlFile(@"D:\Dotnetcaassessment\EmployeeValidator \Input File\", Emp_122014.xml");
+
+            int count = li.Count;
+
+            Assert.Greater(count, 0);
+
+        }
+
+        [Test]
+
+        public void TesPickValidEmployees()
+        {
+
+           EmployeeValidator ev=new EmployeeValidator();
+
+            List<Employee> validlist = nv.PickValidEmployees(f, @"D:\Dotnetcaassessment\EmployeeValidator \ErrorLog\", "Invalid_Employee_Details.txt");
+
+            int count = validlist.Count;
+
+            Assert.Greater(count, 0);
+
+        }
+
+        
+
+        [Test]
+
+        public void TestSaveValidEmployeesToDB()
+        {
+EmployeeValidator ev=new EmployeeValidator();
+
+            bool flg = ev.EmployeeValidator ev=new EmployeeValidator();(f, con);
+
+	aSSERT.isTrue(flg);
+
+        }
+
+    }
+
+}
